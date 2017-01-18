@@ -16,7 +16,7 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        final RelativeLayout splashScreenRelativeLayout = (RelativeLayout)findViewById(R.id.activity_splash);
+        final RelativeLayout splashScreenRelativeLayout = (RelativeLayout)findViewById(R.id.activity_splash_relative_layout);
         final ImageView splashScreenImage = (ImageView)findViewById(R.id.splashScreenImageView);
         final Animation rotateAnimation = AnimationUtils.loadAnimation(getBaseContext(), R.anim.rotate);
         final Animation fadeOutAnimation = AnimationUtils.loadAnimation(getBaseContext(), R.anim.fadeout);
@@ -25,8 +25,8 @@ public class SplashActivity extends AppCompatActivity {
         splashScreenImage.startAnimation(rotateAnimation);
         new Handler().postDelayed(new Runnable() {
             public void run() {
-                Intent mainIntent = new Intent(getBaseContext(), MainActivity.class);
-                startActivity(mainIntent);
+                Intent loginIntent = new Intent(getBaseContext(), LoginActivity.class);
+                startActivity(loginIntent);
                 finish();
                 overridePendingTransition(R.anim.fadein,R.anim.fadeout);
             }

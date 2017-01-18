@@ -4,7 +4,11 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
@@ -13,10 +17,19 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
-
-import com.cunoraz.gifview.library.*;
 import com.cunoraz.gifview.library.GifView;
+import com.facebook.Profile;
+import com.facebook.login.LoginManager;
+
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,6 +44,10 @@ public class MainActivity extends AppCompatActivity {
             m_LocationHandler.postDelayed(m_LocationRunnable, 3000);
         }
     };
+    private TextView m_LogoutButton;
+    private User m_User;
+    private CircleImageView m_ProfilePicture;
+    private Bitmap m_Bitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
 
                 // On pressing Settings button
                 alertDialog.setPositiveButton("Settings", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog,int which) {
+                    public void onClick(DialogInterface dialog, int which) {
                         Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                         getBaseContext().startActivity(intent);
                     }
@@ -81,6 +98,58 @@ public class MainActivity extends AppCompatActivity {
 
             }
         }
+
+        m_User = PrefUtils.getCurrentUser(MainActivity.this);
+        m_ProfilePicture = (CircleImageView) findViewById(R.id.profilePicture);
+
+        // fetching facebook's profile picture
+        new AsyncTask<Void,Void,Void>(){
+            @Override
+            protected Void doInBackground(Void... params) {
+                URL imageURL = null;
+                try {
+                    Uri profilePicture = Profile.getCurrentProfile().getProfilePictureUri(400,400);
+                    //imageURL = new URL("https://graph.facebook.com/" + Profile.getCurrentProfile().getId() + "/picture?type=large");
+                    imageURL = new URL(profilePicture.toString());
+                }
+                catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    m_Bitmap  = BitmapFactory.decodeStream(imageURL.openConnection().getInputStream());
+
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                super.onPostExecute(aVoid);
+                m_ProfilePicture.setImageBitmap(m_Bitmap);
+            }
+        }.execute();
+
+
+        m_LogoutButton = (TextView) findViewById(R.id.logoutButton);
+        m_LogoutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PrefUtils.clearCurrentUser(MainActivity.this);
+
+
+                // We can logout from facebook by calling following method
+                LoginManager.getInstance().logOut();
+
+
+                Intent i= new Intent(MainActivity.this,LoginActivity.class);
+                startActivity(i);
+                finish();
+            }
+        });
+
         m_GPSTracker = new GPSTracker(this);
         gifView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -110,10 +179,5 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
         }
-    }
-
-    @NonNull
-    public void onGifViewClick(){
-
     }
 }
