@@ -144,8 +144,8 @@ public class MainActivity extends AppCompatActivity {
                 LoginManager.getInstance().logOut();
 
 
-                Intent i= new Intent(MainActivity.this,LoginActivity.class);
-                startActivity(i);
+                Intent loginActivity= new Intent(MainActivity.this,LoginActivity.class);
+                startActivity(loginActivity);
                 finish();
             }
         });
@@ -157,6 +157,9 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getBaseContext(),
                         "Location: " + m_GPSTracker.getLongitude() + "-" + m_GPSTracker.getLatitude(),
                         Toast.LENGTH_SHORT).show();
+                Intent searchResultsActivity= new Intent(MainActivity.this,SearchResultsActivity.class);
+                startActivity(searchResultsActivity);
+                finish();
             }
         });
     }
