@@ -1,6 +1,8 @@
 package com.example.or.kudos;
 
 import android.app.AlertDialog;
+import android.app.IntentService;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -10,20 +12,34 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Handler;
+import android.os.ResultReceiver;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.telephony.TelephonyManager;
+import android.text.style.BulletSpan;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.cunoraz.gifview.library.GifView;
 import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -33,6 +49,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MainActivity extends AppCompatActivity {
 
+    private RequestQueue queue;
     private GPSTracker m_GPSTracker;
     private Location m_Location;
     private Handler m_LocationHandler = new Handler();
@@ -154,16 +171,68 @@ public class MainActivity extends AppCompatActivity {
         gifView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                String url = "https://Google.com";
+                String facebookID = "Put My Facebook ID";  //  url?param=value&param2=value2
+                //Handler handler = new Handler();                //WHAT IS A HANDLER
+                //ResultReceiver receiver = new ResultReceiver(handler);
+                //Intent searchResultsActivity= new Intent(MainActivity.this,SearchResultsActivity.class);
+                //searchResultsActivity.putExtra(VolleyService.RECEIVER_OBJECT, receiver);
+                //startActivity(searchResultsActivity);
                 Toast.makeText(getBaseContext(),
                         "Location: " + m_GPSTracker.getLongitude() + "-" + m_GPSTracker.getLatitude(),
                         Toast.LENGTH_SHORT).show();
+                JsonObjectRequest req = new JsonObjectRequest (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Bundle parsedResponse = new Bundle();
+                        int numResults = response.length();
+                        //parsedResponse.putString("Responses", response.toString());
+                        parsedResponse.putInt("numberOfResults", numResults);
+                        Intent searchResultsActivity= new Intent(MainActivity.this,SearchResultsActivity.class);
+                        searchResultsActivity.putExtra("NearbyResults", parsedResponse);
+                        startActivity(searchResultsActivity);
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // TODO Auto-generated method stub
+
+                    }
+                });
+                //queue.add(req);
+                //finish();
+                Bundle parsedResponse = new Bundle();
+                int numResults = 2;
+                String[] res = new String[2];
+                res[0] = "1052793741";
+                res[1] = "1040083258";
+                parsedResponse.putStringArray("responses", res);
+                //parsedResponse.putString("Responses", "1052793741");
+                parsedResponse.putInt("numberOfResults", numResults);
                 Intent searchResultsActivity= new Intent(MainActivity.this,SearchResultsActivity.class);
+                searchResultsActivity.putExtra("NearbyResults", parsedResponse);
                 startActivity(searchResultsActivity);
-                finish();
             }
         });
-    }
 
+
+    }
+    /*
+    private class MyResultReceiver extends ResultReceiver {
+        MyResultReceiver(Handler handler) {
+            super(handler);
+        }
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            //final String result = (String)resultData.get(MyIntentService.EXTRA_PARAM_RESULT_STRING);
+            //Log.i("MainActivity", "Result code from receiver " + resultCode);
+            //Log.i("MainActivity", "Result that came back - " + result);
+            //mTextResult.setText(result);
+        }
+    }
+*/
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);

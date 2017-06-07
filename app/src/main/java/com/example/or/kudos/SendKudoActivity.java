@@ -1,15 +1,29 @@
 package com.example.or.kudos;
 
 import android.content.Context;
+import android.content.Intent;
+import android.location.Location;
+import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.facebook.Profile;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class SendKudoActivity extends AppCompatActivity {
 
@@ -23,9 +37,39 @@ public class SendKudoActivity extends AppCompatActivity {
 
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v,
-                                    int position, long id) {
-                Toast.makeText(SendKudoActivity.this, "" + position,
-                        Toast.LENGTH_SHORT).show();
+                                    int itemID, long id) {
+                if (/*isNetworkAvailable()*/true) {
+                    JSONObject requestObject = new JSONObject();
+
+                    try {
+                        Log.e("picked item", itemID + "");
+
+
+                        requestObject.put("senderFacebookId", Profile.getCurrentProfile());
+                        requestObject.put("receiverFacebookId", null/* Gets from searchresultactivity*/);
+                        requestObject.put("itemId", itemID);
+
+                        JsonObjectRequest req = new JsonObjectRequest(Request.Method.POST, "www.google.com", requestObject,
+                                new Response.Listener<JSONObject>() {
+                                    @Override
+                                    public void onResponse(JSONObject response) {
+                                        Intent mainActivity = new Intent(SendKudoActivity.this, MainActivity.class);
+                                        startActivity(mainActivity);
+                                    }
+                                }, new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+
+                            }
+                        });
+
+                    } catch (Exception e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+                //Toast.makeText(SendKudoActivity.this, "" + position,
+                 //       Toast.LENGTH_SHORT).show();
             }
         });
 

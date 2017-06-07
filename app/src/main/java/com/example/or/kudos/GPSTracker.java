@@ -1,6 +1,7 @@
 package com.example.or.kudos;
 
 import android.app.AlertDialog;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -9,15 +10,31 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresPermission;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.widget.Toast;
+import android.telephony.TelephonyManager;
+import android.content.Context;
+
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import static java.security.AccessController.getContext;
 
 /**
  * Created by Or on 11/01/2017.
@@ -201,8 +218,47 @@ public class GPSTracker extends Service implements LocationListener {
     @Override
     public void onLocationChanged(Location location) {
 
-        m_Location = getLocation();
+        //m_Location = getLocation();
 
+        Log.e("Google", "Location Changed");
+
+        if (location == null)
+            return;
+
+        if (/*isNetworkAvailable()*/true) {
+            JSONObject requestObject = new JSONObject();
+
+            try {
+                //TelephonyManager telephonyManager;
+
+                //telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+                //String deviceId = telephonyManager.getDeviceId();
+                Log.e("latitude", location.getLatitude() + "");
+                Log.e("longitude", location.getLongitude() + "");
+
+
+                double[] coordinates = {location.getLatitude(), location.getLongitude()};
+                requestObject.put("coordinates", coordinates);
+
+                JsonObjectRequest req = new JsonObjectRequest(Request.Method.POST, "www.google.com", requestObject,
+                        new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+
+                            }
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                });
+
+            } catch (Exception e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+        }
     }
 
     @Override
@@ -218,6 +274,12 @@ public class GPSTracker extends Service implements LocationListener {
     @Override
     public void onProviderDisabled(String s) {
 
+    }
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 }
 
