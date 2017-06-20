@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/content_new_kudo"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.example.or.kudos.NewKudo"
+    tools:showIn="@layout/activity_new_kudo">
+
+    <TextView
+        android:text="Item Info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/TitleTV" />
+
+    <TextView
+        android:text="Brand*"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/TitleTV"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="31dp"
+        android:id="@+id/BrandTV" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:text="Enter Here"
+        android:ems="10"
+        android:layout_below="@+id/TitleTV"
+        android:layout_toEndOf="@+id/BrandTV"
+        android:layout_marginStart="26dp"
+        android:layout_marginTop="16dp"
+        android:id="@+id/BrandTB" />
+
+    <Switch
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/RPSwitch"
+        android:layout_alignBaseline="@+id/RPTV"
+        android:layout_alignBottom="@+id/RPTV"
+        android:layout_toEndOf="@+id/TitleTV" />
+
+    <TextView
+        android:text="Price"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/PriceTV"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:text="Got if Abroad?"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/AbroadTV"
+        android:layout_above="@+id/PriceTV"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="24dp" />
+
+    <Switch
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/AbroadSwitch"
+        android:layout_marginStart="13dp"
+        android:layout_alignTop="@+id/AbroadTV"
+        android:layout_alignStart="@+id/RPSwitch" />
+
+    <TextView
+        android:text="Recently Purchased"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/RPTV"
+        android:layout_marginBottom="34dp"
+        android:layout_above="@+id/AbroadTV"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:text="Send"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="65dp"
+        android:id="@+id/SendBTN" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:text="Enter Price"
+        android:ems="10"
+        android:layout_centerVertical="true"
+        android:layout_alignEnd="@+id/BrandTB"
+        android:id="@+id/PriceTB" />
+</RelativeLayout>

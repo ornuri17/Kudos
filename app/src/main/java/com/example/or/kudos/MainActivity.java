@@ -27,14 +27,22 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Cache;
+import com.android.volley.Network;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.BasicNetwork;
+import com.android.volley.toolbox.DiskBasedCache;
+import com.android.volley.toolbox.HurlStack;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.cunoraz.gifview.library.GifView;
+import com.facebook.FacebookSdk;
 import com.facebook.Profile;
 import com.facebook.login.LoginManager;
+import com.google.gson.JsonArray;
 
 
 import org.json.JSONArray;
@@ -69,10 +77,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FacebookSdk.sdkInitialize(getApplicationContext());
         setContentView(R.layout.activity_main);
-        final GifView gifView = (GifView)findViewById(R.id.gif1);
-        gifView.setVisibility(View.VISIBLE);
-        gifView.setGifResource(R.drawable.radar);
+        final ImageView imageView = (ImageView) findViewById(R.id.radarPhoto);
+        imageView.setVisibility(View.VISIBLE);
+        imageView.setImageResource(R.drawable.radar);
 
 
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -118,7 +127,6 @@ public class MainActivity extends AppCompatActivity {
 
         m_User = PrefUtils.getCurrentUser(MainActivity.this);
         m_ProfilePicture = (CircleImageView) findViewById(R.id.profilePicture);
-
         // fetching facebook's profile picture
         new AsyncTask<Void,Void,Void>(){
             @Override
@@ -168,71 +176,114 @@ public class MainActivity extends AppCompatActivity {
         });
 
         m_GPSTracker = new GPSTracker(this);
-        gifView.setOnClickListener(new View.OnClickListener() {
+        updateLocation();
+        imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String url = "https://Google.com";
-                String facebookID = "Put My Facebook ID";  //  url?param=value&param2=value2
-                //Handler handler = new Handler();                //WHAT IS A HANDLER
-                //ResultReceiver receiver = new ResultReceiver(handler);
-                //Intent searchResultsActivity= new Intent(MainActivity.this,SearchResultsActivity.class);
-                //searchResultsActivity.putExtra(VolleyService.RECEIVER_OBJECT, receiver);
-                //startActivity(searchResultsActivity);
-                Toast.makeText(getBaseContext(),
-                        "Location: " + m_GPSTracker.getLongitude() + "-" + m_GPSTracker.getLatitude(),
-                        Toast.LENGTH_SHORT).show();
-                JsonObjectRequest req = new JsonObjectRequest (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024); // 1MB cap
+                Network network = new BasicNetwork(new HurlStack());
+                queue = new RequestQueue(cache, network);
+                queue.start();
+
+
+                String url = "https://kudosapi.herokuapp.com/api/locationStatus/getUsersAroundMe";
+                String facebookID = Profile.getCurrentProfile().getId(); //"Put My Facebook ID";  //  url?param=value&param2=value2
+                double[] coordinates = new double[2];
+                coordinates[0] = m_GPSTracker.getLongitude();
+                coordinates[1] = m_GPSTracker.getLatitude();
+
+                JSONArray coordinatesJson = new JSONArray();
+                JSONObject getUsersAroundMe = new JSONObject();
+                try {
+                    coordinatesJson.put(0, coordinates[0]);
+                    coordinatesJson.put(1, coordinates[1]);
+                    getUsersAroundMe.put("facebookID", facebookID);
+                    getUsersAroundMe.put("coordinates", coordinatesJson);
+                    Log.d("KudosJsonArray", getUsersAroundMe.toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                JsonObjectRequest req = new JsonObjectRequest (Request.Method.POST, url, getUsersAroundMe, new Response.Listener<JSONObject>() {
 
                     @Override
                     public void onResponse(JSONObject response) {
                         Bundle parsedResponse = new Bundle();
-                        int numResults = response.length();
-                        //parsedResponse.putString("Responses", response.toString());
-                        parsedResponse.putInt("numberOfResults", numResults);
-                        Intent searchResultsActivity= new Intent(MainActivity.this,SearchResultsActivity.class);
-                        searchResultsActivity.putExtra("NearbyResults", parsedResponse);
-                        startActivity(searchResultsActivity);
+                        try {
+                            JSONArray responseArray = response.getJSONArray("results");
+                            //JSONArray responseArray = response.toJSONArray(names);
+                            int numResults = responseArray.length();
+                            String[] FBIDs = new String[numResults];
+                            if (numResults == 0) {
+                                Toast.makeText(getBaseContext(),
+                        "Can't find users around you!",
+                        Toast.LENGTH_SHORT).show();
+                            } else {
+                                for (int i = 0; i < responseArray.length(); i++) {
+                                    FBIDs[i] = responseArray.getJSONObject(i).getString("_id");
+                                }
+
+                                parsedResponse.putStringArray("Responses", FBIDs);
+                                parsedResponse.putInt("numberOfResults", numResults);
+                                Intent searchResultsActivity = new Intent(MainActivity.this, SearchResultsActivity.class);
+                                searchResultsActivity.putExtra("NearbyResults", parsedResponse);
+                                startActivity(searchResultsActivity);
+                            }
+                        } catch (JSONException e){
+                            e.printStackTrace();
+                        }
                     }
                 }, new Response.ErrorListener() {
 
                     @Override
                     public void onErrorResponse(VolleyError error) {
+                        Log.d("KUDOSERRORMASSAGE", error.toString());
                         // TODO Auto-generated method stub
 
                     }
                 });
-                //queue.add(req);
-                //finish();
-                Bundle parsedResponse = new Bundle();
-                int numResults = 2;
-                String[] res = new String[2];
-                res[0] = "1052793741";
-                res[1] = "1040083258";
-                parsedResponse.putStringArray("responses", res);
-                //parsedResponse.putString("Responses", "1052793741");
-                parsedResponse.putInt("numberOfResults", numResults);
-                Intent searchResultsActivity= new Intent(MainActivity.this,SearchResultsActivity.class);
-                searchResultsActivity.putExtra("NearbyResults", parsedResponse);
-                startActivity(searchResultsActivity);
+                queue.add(req);
             }
         });
 
 
     }
-    /*
-    private class MyResultReceiver extends ResultReceiver {
-        MyResultReceiver(Handler handler) {
-            super(handler);
+    private void updateLocation(){
+        Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024); // 1MB cap
+        Network network = new BasicNetwork(new HurlStack());
+        queue = new RequestQueue(cache, network);
+        queue.start();
+        JSONObject requestObject = new JSONObject();
+        JSONArray coordinatesJson = new JSONArray();
+        JSONObject location = new JSONObject();
+        double[] coordinates = {m_GPSTracker.getLatitude(), m_GPSTracker.getLongitude()};
+        try {
+            coordinatesJson.put(0, coordinates[0]);
+            coordinatesJson.put(1, coordinates[1]);
+            location.put("type", "Point");
+            location.put("coordinates", coordinatesJson);
+            requestObject.put("facebookID", Profile.getCurrentProfile().getId());
+            requestObject.put("loc", location);
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
-        @Override
-        protected void onReceiveResult(int resultCode, Bundle resultData) {
-            //final String result = (String)resultData.get(MyIntentService.EXTRA_PARAM_RESULT_STRING);
-            //Log.i("MainActivity", "Result code from receiver " + resultCode);
-            //Log.i("MainActivity", "Result that came back - " + result);
-            //mTextResult.setText(result);
-        }
+        String bla = requestObject.toString();
+        int g = 6;
+        JsonObjectRequest req = new JsonObjectRequest(Request.Method.POST, "https://kudosapi.herokuapp.com/api/locationStatus", requestObject,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        int a = 4;
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                int b = 2;
+            }
+        });
+        queue.add(req);
     }
-*/
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);

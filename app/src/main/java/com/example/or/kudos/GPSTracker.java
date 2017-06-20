@@ -29,6 +29,7 @@ import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.facebook.Profile;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -239,8 +240,9 @@ public class GPSTracker extends Service implements LocationListener {
 
                 double[] coordinates = {location.getLatitude(), location.getLongitude()};
                 requestObject.put("coordinates", coordinates);
+                requestObject.put("facebookID", Profile.getCurrentProfile().getId());
 
-                JsonObjectRequest req = new JsonObjectRequest(Request.Method.POST, "www.google.com", requestObject,
+                JsonObjectRequest req = new JsonObjectRequest(Request.Method.POST, "https://kudosapi.herokuapp.com/api/locationStatus", requestObject,
                         new Response.Listener<JSONObject>() {
                             @Override
                             public void onResponse(JSONObject response) {

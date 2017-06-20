@@ -1,6 +1,7 @@
 package com.example.or.kudos;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -13,6 +14,8 @@ import android.text.style.ClickableSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+
 import com.azoft.carousellayoutmanager.CarouselLayoutManager;
 import com.azoft.carousellayoutmanager.CarouselZoomPostLayoutListener;
 import com.azoft.carousellayoutmanager.CenterScrollListener;
@@ -43,62 +46,33 @@ public class SearchResultsActivity extends AppCompatActivity {
 
     public static int INVALID_POSITION = -1;
     private static Uri[] m_ImageUri;
+    private static int m_NumberOfResults;
+    private static String[] m_FacebookIDs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         FacebookSdk.sdkInitialize(getApplicationContext());
         setContentView(R.layout.activity_search_results);
         Bundle resultsBundle = this.getIntent().getBundleExtra("NearbyResults");
         parseResults(resultsBundle);
-        /*m_ImageUri = new Uri[]
-                {
-                    Profile.getCurrentProfile().getProfilePictureUri(200,200),
-                    Profile.getCurrentProfile().getProfilePictureUri(200,200),
-                    Profile.getCurrentProfile().getProfilePictureUri(200,200),
-                    Profile.getCurrentProfile().getProfilePictureUri(200,200),
-                    Profile.getCurrentProfile().getProfilePictureUri(200,200),
-                    Profile.getCurrentProfile().getProfilePictureUri(200,200),
-                    Profile.getCurrentProfile().getProfilePictureUri(200,200),
-                    Profile.getCurrentProfile().getProfilePictureUri(200,200),
-                    Profile.getCurrentProfile().getProfilePictureUri(200,200),
-                    Profile.getCurrentProfile().getProfilePictureUri(200,200)
-        };*/
         final HorizontalAdaptar adapter = new HorizontalAdaptar(this);
         RecyclerView rh = (RecyclerView) findViewById(R.id.list_horizontal);
         initRecyclerView(rh, new CarouselLayoutManager(CarouselLayoutManager.HORIZONTAL, false), adapter);
 
     }
 
-    private String wordAt(String[] str, int wordIndex){
-        /*String toReturn = "";
-        int j = 0;
-        for (int i = 0; i < wordIndex; i++){
-            while (str.charAt(j) != ' '){
-                j++;
-            }
-            j++;
-        }
-        //while (str.charAt(j) != ' '){
-        //    toReturn += str.charAt(j);
-        //    j++;
-        //}*/
-        return str[wordIndex];
-    }
-
     private void parseResults (Bundle resultsBundle){
-        int numberOfResults = resultsBundle.getInt("numberOfResults");
-        m_ImageUri = new Uri[numberOfResults];
-        String[] bla = resultsBundle.getStringArray("responses");
+        m_NumberOfResults = resultsBundle.getInt("numberOfResults");
+        m_ImageUri = new Uri[m_NumberOfResults];
+        m_FacebookIDs = resultsBundle.getStringArray("Responses");
         String currentUserId;
-        for (int i = 0; i < numberOfResults; i++){
-            //currentUserId = wordAt(resultsBundle.getStringArray("Responses"), i);        //Check index
-            currentUserId = bla[i];
+        for (int i = 0; i < m_NumberOfResults; i++){
+            currentUserId = m_FacebookIDs[i];
             Uri temp = Uri.parse("https://graph.facebook.com/" + currentUserId + "/picture?type=large");
             m_ImageUri[i] = temp;
-
         }
     }
 
@@ -120,14 +94,14 @@ public class SearchResultsActivity extends AppCompatActivity {
             public void onCenterItemChanged(final int adapterPosition) {
                 if (INVALID_POSITION != adapterPosition) {
                     final int value = adapter.mPosition[adapterPosition];
-                    adapter.mPosition[adapterPosition] = (value % 10) + (value / 10 + 1) * 10;
+                    adapter.mPosition[adapterPosition] = (value % m_NumberOfResults) + (value / m_NumberOfResults + 1) * m_NumberOfResults;
                     adapter.notifyItemChanged(adapterPosition);
                 }
             }
         });
     }
 
-    private static final class HorizontalAdaptar extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private final class HorizontalAdaptar extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
         @SuppressWarnings("UnsecureRandomNumberGeneration")
         private final Random mRandom = new Random();
@@ -137,17 +111,17 @@ public class SearchResultsActivity extends AppCompatActivity {
 
 
 
-        private int mItemsCount = 10;
+        private int mItemsCount = m_NumberOfResults;
         LayoutInflater inflater;
 
         HorizontalAdaptar(Context context) {
             this.context=context;
 
             this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            mColors = new int[10];
-            mPosition = new int[10];
+            mColors = new int[m_NumberOfResults];
+            mPosition = new int[m_NumberOfResults];
 
-            for (int i = 0; 10 > i; ++i) {
+            for (int i = 0; m_NumberOfResults > i; ++i) {
                 //noinspection MagicNumber
                 mColors[i] = Color.argb(255, mRandom.nextInt(256), mRandom.nextInt(256), mRandom.nextInt(256));
                 mPosition[i] = i;
@@ -167,13 +141,24 @@ public class SearchResultsActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
             final CircleImageView circleImageView = ((RowNewsViewHolder) holder).pp;
+            circleImageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Bundle pickedUserID = new Bundle();
+                    pickedUserID.putString("facebookID", m_FacebookIDs[position]);
+                    Intent sendKudoActivity = new Intent(SearchResultsActivity.this, SendKudoActivity.class);
+                    sendKudoActivity.putExtra("pickedUserFBID", pickedUserID);
+                    startActivity(sendKudoActivity);
+                    finish();
+                }
+            });
             new AsyncTask<Void,Void,Bitmap>(){
                 @Override
                 protected Bitmap doInBackground(Void... params) {
                     URL imageURL = null;
                     Bitmap bitmap = null;
                     try {
-                        Uri profilePicture = m_ImageUri[position % 2]; //Profile.getCurrentProfile().getProfilePictureUri(400,400);
+                        Uri profilePicture = m_ImageUri[position]; //Profile.getCurrentProfile().getProfilePictureUri(400,400);
                         imageURL = new URL(profilePicture.toString());
                     }
                     catch (MalformedURLException e) {

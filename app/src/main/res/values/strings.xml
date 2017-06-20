@@ -16,4 +16,6 @@
     </string>
     <string name="facebook_app_id">1595340843812681</string>
     <string name="fb_login_protocol_scheme">fb1595340843812681</string>
+    <string name="title_activity_new_kudo">NewKudo</string>
+    <string name="title_activity_kudo_response">KudoResponse</string>
 </resources>

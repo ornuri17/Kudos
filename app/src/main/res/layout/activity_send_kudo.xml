@@ -9,9 +9,25 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:background="@color/cardview_light_background"
+    android:background="#fce6ee"
     tools:context="com.example.or.kudos.SendKudoActivity">
 
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        app:srcCompat="@drawable/cap"
+        android:id="@+id/sendKudoPP"
+        android:layout_centerHorizontal="true"
+        android:layout_weight="1"/>
+
+    <TextView
+        android:text="Pick desired items"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/Text1"
+        android:paddingTop="150dp"
+        android:textAlignment="center"
+        android:textSize="15pt"/>
 
     <LinearLayout
         android:orientation="vertical"
@@ -20,29 +36,17 @@
         android:weightSum="2">
 
         <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:id="@+id/Linear"
-                android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/Linear"
+            android:layout_weight="1"
             android:weightSum="2"
             android:paddingTop="10dp">
 
-            <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="0dp"
-                    app:srcCompat="@drawable/cap"
-                    android:id="@+id/imageView"
-                android:layout_weight="1"/>
 
-            <TextView
-                android:text="Pick desired items"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/Text1"
-                android:layout_weight="0.5"
-                android:textAlignment="center"
-                android:textSize="15pt"/>
+
+
 
         </LinearLayout>
 
